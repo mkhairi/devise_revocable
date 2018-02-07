@@ -2,7 +2,9 @@ require 'rails/generators/migration'
 
 class DeviseRevocableGenerator < Rails::Generators::NamedBase
 
-  include Rails::Generators::Migration
+  if defined?(ActiveRecord)
+    include Rails::Generators::Migration
+  end
 
   desc "Generates a model with the given NAME (if one does not exist) with" <<
       "devise configuration plus a migration file and devise routes."
@@ -19,11 +21,14 @@ class DeviseRevocableGenerator < Rails::Generators::NamedBase
     end
   end
 
-   def generate
-      create_login_model
-      create_migration_file
-      inject_devise_directives_into_model
+  def generate
+    create_login_model
+    create_migration_file
+    inject_devise_directives_into_model
   end
+
+
+  private
 
   def create_migration_file
     migration_template 'migration.rb', "db/migrate/devise_create_logins.rb", migration_version: migration_version
@@ -33,14 +38,23 @@ class DeviseRevocableGenerator < Rails::Generators::NamedBase
     template('model.rb', model_path)
   end
 
-  protected
+  def inject_devise_directives_into_model
+    model_path = File.join('app', 'models', "#{file_path}.rb")
+    class_path = namespaced? ? class_name.to_s.split('::') : [class_name]
+    indent_depth = class_path.size
+
+    content = ['devise :revocable']
+    content = content.map { |line| '  ' * indent_depth + line }.join("\n") << "\n"
+
+    inject_into_class(model_path, class_path.last, content)
+  end
+
 
   def model_path
     @model_path ||= File.join('app', 'models', "login.rb")
   end
 
   def migration_version
-	"[#{ActiveRecord::VERSION::MAJOR}.#{ActiveRecord::VERSION::MINOR}]"
+    "[#{ActiveRecord::VERSION::MAJOR}.#{ActiveRecord::VERSION::MINOR}]"
   end
-
 end
