@@ -1,7 +1,3 @@
-Warden::Manager.after_authentication do |record, warden, options|
-  #warden.cookies["device_id"] = 'after auth 2'
-end
-
 # After authenticating, we’re removing any session activation that may already
 # exist, and creating a new session# activation. We generate our own random id
 # (in User#activate_session) and store it in the auth_id key. There is already
@@ -10,15 +6,11 @@ end
 # easier to just use our own id.
 Warden::Manager.after_set_user except: :fetch do |record, warden, options|
   scope = options[:scope]
-  if record && record.respond_to?(:deactivate_session!) && record.respond_to?(:activate_session)
+  if record && record.respond_to?(:has_revocable_sessions?) && record.has_revocable_sessions?
     record.deactivate_session!(warden.raw_session[:auth_id])
-    login = record.activate_session(warden.request)
-    #if rememberme
-      #warden.cookies.permanent[:auth_id] = login.session_id
-      #warden.cookies.permanent[:device_id]  = login.device_id
-    #else
-    warden.raw_session[:auth_id] = login.session_id
-    warden.cookies[:device_id] = login.device_id
+    revocable_session = record.activate_session(warden.request)
+    warden.raw_session[:auth_id] = revocable_session.session_id
+    warden.cookies[:device_id] = revocable_session.device_id
   end
 end
 
@@ -26,7 +18,7 @@ end
 # as active for that record. If it’s not we log the user out.
 Warden::Manager.after_fetch do |record, warden, options|
   scope = options[:scope]
-  if record && record.respond_to?(:session_active?) && record.respond_to?(:mark_last_seen!)
+  if record && record.respond_to?(:has_revocable_sessions?) && record.has_revocable_sessions?
     device_cookie = warden.cookies[:device_id]
     valid_session = record.session_active?(device_cookie, warden.raw_session[:auth_id])
     if device_cookie.present? and valid_session
@@ -42,7 +34,7 @@ end
 # session cookie can’t be reused afterwards.
 Warden::Manager.before_logout do |record, warden, options|
   scope = options[:scope]
-  if record && record.respond_to?(:deactivate_session!)
+  if record && record.respond_to?(:has_revocable_sessions?) && record.has_revocable_sessions?
     record.deactivate_session!(warden.raw_session[:auth_id])
     warden.cookies.delete(:device_id)
   end
