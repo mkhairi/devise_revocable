@@ -1,0 +1,48 @@
+AllCops:
+  NewCops: enable
+  SuggestExtensions: false
+  TargetRubyVersion: 3.1
+  Exclude:
+    - vendor/**/*
+
+Gemspec/RequiredRubyVersion:
+  Enabled: false
+
+Gemspec/RequireMFA:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Layout/LineLength:
+  Exclude:
+    - spec/**/*
+
+Lint/EmptyClass:
+  Enabled: false
+
+Lint/EmptyBlock:
+  Enabled: false
+
+Lint/MissingSuper:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+    - ninny.gemspec
+
+Metrics/MethodLength:
+  Max: 15
+
+Style/AccessModifierDeclarations:
+  EnforcedStyle: inline
+
+Style/BlockDelimiters:
+  Enabled: true
+  Exclude:
+    - spec/**/*
+
+Style/OptionalBooleanParameter:
+  Enabled: false

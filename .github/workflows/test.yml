@@ -1,0 +1,50 @@
+name: Test
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  GITLEAKS_VERSION: v8.13.0
+
+jobs:
+  pronto:
+    if: github.EVENT_NAME == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - uses: HeRoMo/pronto-action@v1.32.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+  gitleaks:
+    if: github.EVENT_NAME == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - run: |
+        curl -H "Accept: application/vnd.github.v3.raw" \
+          -L "https://api.github.com/repos/zricethezav/gitleaks/contents/config/gitleaks.toml?ref=${{ env.GITLEAKS_VERSION }}" \
+          >> ${{ github.WORKSPACE }}/.github/workflows/original.toml
+        sed "/\[allowlist\]/,/^$/d" ${{ github.WORKSPACE }}/.github/workflows/original.toml >> ${{ github.WORKSPACE }}/.github/workflows/official.toml
+        cat .github/workflows/gitleaks.toml >> .github/workflows/official.toml
+        if [[ ${{ github.REF }} == 'refs/heads/main' ]]; then
+          CURRENT_COMMIT="${{ github.SHA }}"
+        else
+          CURRENT_COMMIT="${{ github.EVENT.PULL_REQUEST.HEAD.SHA }}"
+        fi
+        echo "LOG_OPTS='^origin/main $CURRENT_COMMIT'" >> $GITHUB_ENV
+    - uses: addnab/docker-run-action@v3
+      with:
+        image: zricethezav/gitleaks:${{ env.GITLEAKS_VERSION }}
+        options: -v ${{ github.WORKSPACE }}:/app
+        run: |
+          cd /app
+          git config --global --add safe.directory /app
+          gitleaks detect --verbose --source='./' \
+            --config='.github/workflows/official.toml' \
+            --log-opts=${{ env.LOG_OPTS }}

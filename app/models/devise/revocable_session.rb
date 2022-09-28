@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Devise
   class RevocableSession < ApplicationRecord
     belongs_to :resource, polymorphic: true

@@ -57,7 +57,9 @@ module Devise
 
         def devise_writer_wrapper
           role = Rails.application.config.active_record.writing_role || :writing
-          ActiveRecord::Base.connected_to(role: :writing, &block)
+          ActiveRecord::Base.connected_to(role: role) do
+            ActiveRecord.legacy_connection_handling
+          end
         end
 
         protected

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "devise_revocable_session/version"
 require 'devise'
 require 'devise_revocable_session/hooks/revocable_session'

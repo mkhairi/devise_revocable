@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class CreateRevocableSessions < ActiveRecord::Migration<%= migration_version %>
   def change
     create_table :revocable_sessions do |t|
@@ -21,4 +23,3 @@ class CreateRevocableSessions < ActiveRecord::Migration<%= migration_version %>
     end
   end
 end
-

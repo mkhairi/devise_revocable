@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # After authenticating, we’re removing any session activation that may already
 # exist, and creating a new session# activation. We generate our own random id
 # (in User#activate_session) and store it in the auth_id key. There is already
