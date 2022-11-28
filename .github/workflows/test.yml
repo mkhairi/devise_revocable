@@ -6,7 +6,7 @@ on:
     branches: [ main ]
 
 env:
-  GITLEAKS_VERSION: v8.13.0
+  GITLEAKS_VERSION: v8.15.1
 
 jobs:
   pronto:
@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: HeRoMo/pronto-action@v1.32.0
+    - uses: HeRoMo/pronto-action@v1.40.0
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
   gitleaks:
